@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>"One More Time" Blink 182  Drag & Drop Activity 1</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #e6f2ff; /* Light blue background */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      display: flex;
+      justify-content: space-between;
+      gap: 30px;
+      margin-bottom: 30px;
+      width: 90%;
+      max-width: 1200px;
+    }
+    .column {
+      width: 45%;
+    }
+    .word, .definition {
+      padding: 15px;
+      border: 1px solid #ccc;
+      margin: 10px 0;
+      background-color: #fff;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    .word:hover, .definition:hover {
+      background-color: #b3e0ff;
+    }
+    .droppable {
+      min-height: 50px;
+      border: 2px dashed #ddd;
+      margin-bottom: 10px;
+      background-color: #fafafa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .correct {
+      background-color: #a5d6a7;
+      color: #2e7d32;
+    }
+    .incorrect {
+      background-color: #ffccbc;
+      color: #d32f2f;
+    }
+    #feedback {
+      margin-top: 20px;
+      font-size: 1.2em;
+      text-align: center;
+    }
+    .game-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+      text-align: center;
+    }
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+<div class="game-controls">
+  <label for="time-limit">Time Limit:</label>
+  <select id="time-limit">
+    <option value="0">No Limit</option>
+    <option value="180">3 Minutes</option>
+    <option value="300">5 Minutes</option>
+    <option value="420">7 Minutes</option>
+    <option value="600">10 Minutes</option>
+  </select>
+  <div id="timer">Time: --:--</div>
+  <div id="score">Score: 0/12</div>
+</div>
+
+<h2>"One More Time" Blink 182 ::  Drag & Drop Activity (Target Language)</h2>
+
+<p>Drag the word to the correct definition on the right.</p>
+
+<div class="container">
+  <!-- Words Column -->
+  <div class="column" id="words">
+    <!-- Words will be populated by JavaScript -->
+  </div>
+
+  <!-- Definitions Column -->
+  <div class="column" id="definitions">
+    <!-- Definitions will be populated by JavaScript -->
+  </div>
+</div>
+
+<div id="feedback"></div>
+
+<script>
+  // Vocabulary data
+  const vocabularyData = [
+    { word: 'Strangers', definition: 'People unknown to each other.' },
+    { word: "Couldn't", definition: 'Were not able to.' },
+    { word: 'Recognize', definition: 'Identify or distinguish.' },
+    { word: 'Different', definition: 'Not the same as another.' },
+    { word: 'Wonder', definition: 'Feel curious or doubt.' },
+    { word: 'Told', definition: 'Informed or instructed.' },
+    { word: "Shouldn't", definition: 'Should not.' },
+    { word: 'Act', definition: 'Behave in a particular way.' },
+    { word: 'Wait', definition: 'Pause or remain in place.' },
+    { word: 'Admit', definition: 'Acknowledge something is true.' },
+    { word: 'Still', definition: 'Continuing to be.' },
+    { word: 'Gotta', definition: 'Have got to (informal).' }
+  ];
+
+  // Shuffle function
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  // Game state
+  let shuffledVocab;
+  let draggedWord = null;
+  let matchedWords = 0;
+  let gameTimer = null;
+
+  // Initialize game
+  function initGame() {
+    const wordsColumn = document.getElementById('words');
+    const definitionsColumn = document.getElementById('definitions');
+    
+    // Reset columns
+    wordsColumn.innerHTML = '';
+    definitionsColumn.innerHTML = '';
+
+    // Shuffle vocabulary
+    shuffledVocab = shuffle([...vocabularyData]);
+
+    // Populate words
+    shuffledVocab.forEach((item, index) => {
+      const wordElement = document.createElement('div');
+      wordElement.classList.add('word');
+      wordElement.draggable = true;
+      wordElement.id = `word-${index}`;
+      wordElement.textContent = item.word;
+      wordElement.addEventListener('dragstart', dragStart);
+      wordsColumn.appendChild(wordElement);
+    });
+
+    // Populate definitions
+    shuffledVocab.forEach((item, index) => {
+      const defElement = document.createElement('div');
+      defElement.classList.add('droppable');
+      defElement.id = `def-${index}`;
+      defElement.textContent = item.definition;
+      defElement.addEventListener('dragover', dragOver);
+      defElement.addEventListener('drop', drop);
+      definitionsColumn.appendChild(defElement);
+    });
+
+    // Reset game state
+    matchedWords = 0;
+    document.getElementById('score').textContent = `Score: 0/12`;
+    document.getElementById('feedback').innerHTML = '';
+
+    // Start timer if selected
+    startTimer();
+  }
+
+  // Timer functionality
+  function startTimer() {
+    const timeLimit = parseInt(document.getElementById('time-limit').value);
+    const timerDisplay = document.getElementById('timer');
+    
+    // Clear any existing timer
+    if (gameTimer) clearInterval(gameTimer);
+
+    if (timeLimit > 0) {
+      let timeRemaining = timeLimit;
+      
+      gameTimer = setInterval(() => {
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        timerDisplay.textContent = `Time: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        
+        if (timeRemaining <= 0) {
+          clearInterval(gameTimer);
+          showPopup('Time is up! Game Over', false);
+        }
+        
+        timeRemaining--;
+      }, 1000);
+    } else {
+      timerDisplay.textContent = 'Time: --:--';
+    }
+  }
+
+  // Drag and drop events
+  function dragStart(event) {
+    draggedWord = event.target;
+    event.dataTransfer.setData("text", event.target.id);
+  }
+
+  function dragOver(event) {
+    event.preventDefault();
+  }
+
+  function drop(event) {
+    event.preventDefault();
+    const droppedOn = event.target.closest('.droppable');
+    
+    if (!droppedOn) return;
+
+    const wordIndex = draggedWord.id.split('-')[1];
+    const defIndex = droppedOn.id.split('-')[1];
+
+    if (wordIndex === defIndex) {
+      showPopup('Correct!', true);
+      droppedOn.classList.add('correct');
+      droppedOn.textContent = draggedWord.textContent;
+      draggedWord.style.display = 'none';
+      
+      matchedWords++;
+      document.getElementById('score').textContent = `Score: ${matchedWords}/12`;
+
+      if (matchedWords === 12) {
+        clearInterval(gameTimer);
+        showPopup('Congratulations! You matched all words!', true);
+      }
+    } else {
+      showPopup('Incorrect. Try again!', false);
+    }
+  }
+
+  // Popup functionality
+  function showPopup(message, isCorrect) {
+    // Remove any existing popups
+    const existingOverlay = document.querySelector('.overlay');
+    if (existingOverlay) existingOverlay.remove();
+
+    const overlay = document.createElement('div');
+    overlay.classList.add('overlay');
+
+    const popup = document.createElement('div');
+    popup.classList.add('popup');
+    popup.innerHTML = `
+      <h2 style="color: ${isCorrect ? '#2e7d32' : '#d32f2f'}">${message}</h2>
+      <button onclick="this.closest('.overlay').remove()">Close</button>
+    `;
+
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+
+    // Automatically close after 2 seconds
+    setTimeout(() => {
+      if (document.body.contains(overlay)) {
+        document.body.removeChild(overlay);
+      }
+    }, 2000);
+  }
+
+  // Event listeners
+  document.getElementById('time-limit').addEventListener('change', startTimer);
+  
+  // Start the game on page load
+  initGame();
+
+  // Add reset button
+  const resetButton = document.createElement('button');
+  resetButton.textContent = 'Reset Game';
+  resetButton.addEventListener('click', initGame);
+  document.querySelector('.game-controls').appendChild(resetButton);
+</script>
+
+<div class="signature">
+  &copy; 2024 Daniel Rojas :: TΣʃ :: &#9993; <a href="mailto:unitedartistsinstitute@gmail.com">unitedartistsinstitute@gmail.com</a>
+</div>
+</body>
+</html>
