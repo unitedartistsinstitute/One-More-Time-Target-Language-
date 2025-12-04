@@ -9,7 +9,7 @@
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 20px;
-      background-color: #e6f2ff; /* Light blue background */
+      background-color: #e6f2ff; 
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -108,21 +108,21 @@
 <p>Drag the word to the correct definition on the right.</p>
 
 <div class="container">
-  <!-- Words Column -->
+  
   <div class="column" id="words">
-    <!-- Words will be populated by JavaScript -->
+    
   </div>
 
-  <!-- Definitions Column -->
+  
   <div class="column" id="definitions">
-    <!-- Definitions will be populated by JavaScript -->
+  
   </div>
 </div>
 
 <div id="feedback"></div>
 
 <script>
-  // Vocabulary data
+  
   const vocabularyData = [
     { word: 'Strangers', definition: 'People unknown to each other.' },
     { word: "Couldn't", definition: 'Were not able to.' },
@@ -138,7 +138,7 @@
     { word: 'Gotta', definition: 'Have got to (informal).' }
   ];
 
-  // Shuffle function
+  
   function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -147,25 +147,25 @@
     return array;
   }
 
-  // Game state
+  
   let shuffledVocab;
   let draggedWord = null;
   let matchedWords = 0;
   let gameTimer = null;
 
-  // Initialize game
+  
   function initGame() {
     const wordsColumn = document.getElementById('words');
     const definitionsColumn = document.getElementById('definitions');
     
-    // Reset columns
+    
     wordsColumn.innerHTML = '';
     definitionsColumn.innerHTML = '';
 
-    // Shuffle vocabulary
+    
     shuffledVocab = shuffle([...vocabularyData]);
 
-    // Populate words
+    
     shuffledVocab.forEach((item, index) => {
       const wordElement = document.createElement('div');
       wordElement.classList.add('word');
@@ -176,7 +176,7 @@
       wordsColumn.appendChild(wordElement);
     });
 
-    // Populate definitions
+    
     shuffledVocab.forEach((item, index) => {
       const defElement = document.createElement('div');
       defElement.classList.add('droppable');
@@ -187,21 +187,21 @@
       definitionsColumn.appendChild(defElement);
     });
 
-    // Reset game state
+    
     matchedWords = 0;
     document.getElementById('score').textContent = `Score: 0/12`;
     document.getElementById('feedback').innerHTML = '';
 
-    // Start timer if selected
+    
     startTimer();
   }
 
-  // Timer functionality
+  
   function startTimer() {
     const timeLimit = parseInt(document.getElementById('time-limit').value);
     const timerDisplay = document.getElementById('timer');
     
-    // Clear any existing timer
+    
     if (gameTimer) clearInterval(gameTimer);
 
     if (timeLimit > 0) {
@@ -224,7 +224,7 @@
     }
   }
 
-  // Drag and drop events
+  
   function dragStart(event) {
     draggedWord = event.target;
     event.dataTransfer.setData("text", event.target.id);
@@ -261,9 +261,9 @@
     }
   }
 
-  // Popup functionality
+  
   function showPopup(message, isCorrect) {
-    // Remove any existing popups
+    
     const existingOverlay = document.querySelector('.overlay');
     if (existingOverlay) existingOverlay.remove();
 
@@ -280,7 +280,7 @@
     overlay.appendChild(popup);
     document.body.appendChild(overlay);
 
-    // Automatically close after 2 seconds
+    
     setTimeout(() => {
       if (document.body.contains(overlay)) {
         document.body.removeChild(overlay);
@@ -288,13 +288,13 @@
     }, 2000);
   }
 
-  // Event listeners
+  
   document.getElementById('time-limit').addEventListener('change', startTimer);
   
-  // Start the game on page load
+  
   initGame();
 
-  // Add reset button
+  
   const resetButton = document.createElement('button');
   resetButton.textContent = 'Reset Game';
   resetButton.addEventListener('click', initGame);
